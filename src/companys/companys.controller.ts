@@ -4,8 +4,8 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { ApiTags } from '@nestjs/swagger';
 
-@ApiTags('companys')
-@Controller('companys')
+@ApiTags('companies')
+@Controller('companies')
 export class CompanysController {
   constructor(private readonly companysService: CompanysService) {}
 
@@ -19,9 +19,9 @@ export class CompanysController {
     return this.companysService.findAll();
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.companysService.findOne(+id);
+  @Get(':name')
+  findOne(@Param('name') name: string) {
+    return this.companysService.findOne(name);
   }
 
   @Patch(':id')

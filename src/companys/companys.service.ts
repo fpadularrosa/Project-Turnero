@@ -7,19 +7,26 @@ import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class CompanysService {
-  constructor(@InjectModel(Company.name) private companysModule: Model<CompanyDocument>){}
+  findById(id: string) {
+    throw new Error('Method not implemented.');
+  }
+  constructor(@InjectModel(Company.name) private companyModule: Model<CompanyDocument>){}
 
   async create(createCompanyDto: CreateCompanyDto) {
-    const companyCreated = await this.companysModule.create(createCompanyDto);
+    const companyCreated = await this.companyModule.create(createCompanyDto);
     return companyCreated;
   }
 
   findAll() {
-    return this.companysModule.find({});
+    
+    return this.companyModule.find({});
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} company`;
+  async findOne(companyName: string) {
+    const companys = await this.companyModule.find({});
+    const findedCompany = companys.find(companyObject => companyObject.name.toLowerCase().trim() === companyName.toLowerCase().trim());
+    const { ceo, name, employees, email } = findedCompany;
+    return { ceo, name, employees, email };
   }
 
   update(id: number, updateCompanyDto: UpdateCompanyDto) {
