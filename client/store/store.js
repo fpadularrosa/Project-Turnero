@@ -1,7 +1,7 @@
 import { applyMiddleware, compose, legacy_createStore } from "@reduxjs/toolkit";
 import { createWrapper } from "next-redux-wrapper";
 import thunk from "redux-thunk";
-import reducer from "./store/reducers";
+import reducer from "./reducers";
 
 const middleware = [thunk];
 

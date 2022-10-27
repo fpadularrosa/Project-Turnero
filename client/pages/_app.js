@@ -1,6 +1,6 @@
 import "../styles/globals.css";
 import { Provider } from "react-redux";
-import { wrapper } from '../store';
+import { wrapper } from '../store/store.js';
 function MyApp({ Component, ...rest }) {
   const { store, props } = wrapper.useWrappedStore(rest);
   const { pageProps } = props;

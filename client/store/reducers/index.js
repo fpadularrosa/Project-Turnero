@@ -1,10 +1,12 @@
 import {
     GET_COMPANIES,
-    GET_COMPANIE
+    GET_COMPANIE,
+    LOGIN,
+    LOGOUT
 } from '../types';
-
 const initialState = {
-    companies: []
+    companies: [],
+    user: null
 };
 const reducer = (state = initialState, action) => {
     switch(action.type){
@@ -17,6 +19,16 @@ const reducer = (state = initialState, action) => {
             return {
                 ...state,
                 companies: [action.payload]
+            }
+        case LOGIN: 
+            return {
+                ...state,
+                user: action.payload
+            }
+        case LOGOUT:
+            return {
+                ...state,
+                user: null
             }
         default:
             return state;
