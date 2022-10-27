@@ -8,12 +8,11 @@ import { Model } from 'mongoose';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private usersModule: Model<UserDocument>){
-
-  }
-  async register(createUserDto: CreateUserDto) {
+  constructor(@InjectModel(User.name) private usersModule: Model<UserDocument>){}
+  
+  async create(createUserDto: CreateUserDto) {
     const userCreated = await this.usersModule.create(createUserDto);
-    return userCreated;
+    return 'This action adds a new User';
   }
 
   async findAll() {
