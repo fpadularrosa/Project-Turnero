@@ -1,12 +1,17 @@
-import Companies from '../components/Companies'
-import Searchbar from '../components/Searchbar'
-
+import { useRouter } from "next/router";
+import { useEffect } from "react";
+import NavBar from '../components/NavBar'
 export default function Home() {
+  const history = useRouter();
+  useEffect(()=> {
+    !window.localStorage['loggedUser'] && history.push('/');
+  }, []);
   return (
-    <div>
-      <Searchbar/>
-      HELLO WORLD
-      <Companies/>
-    </div>
+    <>
+    <NavBar/>
+      INICIO
+    <br/>
+      THIS IS AN MULTIPLECOMPANIES TURNER
+    </>
   )
 }

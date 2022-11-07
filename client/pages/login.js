@@ -7,43 +7,46 @@ const Login = () => {
     const history = useRouter();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [showPwd, setShowPwd] = useState(false);
-    const [loginButtonPressed, setLoginButtonPressed] = useState(false);
     const dispatch = useDispatch();
 
     useEffect(()=> {
        window.localStorage['loggedUser'] && history.push('/');
-    },[loginButtonPressed]);
+    });
 
     const handleLoginSubmit = async (e) => {
         e.preventDefault();
         if(!email && !password) return;
-        setLoginButtonPressed(true);
         dispatch(postLogin({ email, password }));
+        setTimeout(()=> {
+            window.localStorage['loggedUser'] && history.push('/');
+        }, 1500);
         setEmail('');
         setPassword('');
         e.target.reset();
     };
 
     return(
-        <div className="xl:flex xl:justify-center">
-            <form className="xl:flex xl:flex-col xl:items-center xl:border-2 xl:border-black xl:mt-48" onSubmit={e => handleLoginSubmit(e)}>
-                <input placeholder="email" onChange={e => setEmail(e.target.value)} value={email}></input>
-                <input placeholder="password" className="xl:relative" type={showPwd ? "text":"password"} onChange={e => setPassword(e.target.value)} value={password}></input>
-                <div className="xl:absolute xl:flex xl:mt-6 xl:ml-36" onClick={() => setShowPwd(!showPwd)}>
-                    {showPwd ? 
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" height={"1.5rem"}>
-                        <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
-                        <path fillRule="evenodd" d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z" clipRule="evenodd" />
-                    </svg> :
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" height={"1.5rem"}>
-                        <path d="M3.53 2.47a.75.75 0 00-1.06 1.06l18 18a.75.75 0 101.06-1.06l-18-18zM22.676 12.553a11.249 11.249 0 01-2.631 4.31l-3.099-3.099a5.25 5.25 0 00-6.71-6.71L7.759 4.577a11.217 11.217 0 014.242-.827c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113z" />
-                        <path d="M15.75 12c0 .18-.013.357-.037.53l-4.244-4.243A3.75 3.75 0 0115.75 12zM12.53 15.713l-4.243-4.244a3.75 3.75 0 004.243 4.243z" />
-                        <path d="M6.75 12c0-.619.107-1.213.304-1.764l-3.1-3.1a11.25 11.25 0 00-2.63 4.31c-.12.362-.12.752 0 1.114 1.489 4.467 5.704 7.69 10.675 7.69 1.5 0 2.933-.294 4.242-.827l-2.477-2.477A5.25 5.25 0 016.75 12z" />
-                    </svg>}
-                </div>
-                <button type="submit">Login</button>
-            </form>
+        <div className="h-screen">
+            <div className="grid place-items-center ">
+            <h1 className='xl:text-3xl xl:font-bold xl:my-20'>Sign in to your account</h1>
+                <form className="w-[30%] xl:border-2 xl:shadow-sm xl:drop-shadow xl:shadow-blue-400 xl:border-slate-100" onSubmit={e => handleLoginSubmit(e)}>
+                    <div className="xl:grid xl:drop-shadow-md xl:grid-flow-row xl:justify-center xl:items-center xl:place-items-center xl:px-32 xl:py-2" id='container-LoginForm'>
+                        <div className="xl:py-4">
+                            <div className="flex flex-col items-center">
+                              <input className="xl:mb-1 xl:min-w-[370px] outline-blue-200 caret-black border border-slate-200 xl:min-h-[36px]" onChange={e => setEmail(e.target.value)} value={email}></input>
+                              <label>Email address</label>
+                            </div>
+                            <div className="flex flex-col items-center">
+                              <input className="xl:mb-1 xl:min-w-[370px] outline-blue-200 caret-black border border-slate-200 xl:relative xl:min-h-[36px]" type="password" onChange={e => setPassword(e.target.value)} value={password}></input>
+                              <label>Password</label>
+                            </div>
+                        </div>
+                        <div>
+                            <button className="xl:min-h-[40px] xl:min-w-[140px] bg-blue-800 xl:my-4 text-white text-md active:border-white active:border active:bg-blue-400" type="submit">Sign in</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
         </div>
     )
 };

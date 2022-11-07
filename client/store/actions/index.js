@@ -2,7 +2,8 @@ import {
     GET_COMPANIE,
     GET_COMPANIES,
     LOGIN,
-    LOGOUT
+    LOGOUT,
+    NEW_APPOINTMENT
 } from '../types.js';
 import Swal from 'sweetalert2';
 export const getCompanies = () => {
@@ -15,11 +16,9 @@ export const getCompanies = () => {
 };
 
 export const getCompanie = (name) => {
-    return (dispatch) => {
-        window.fetch(`http://localhost:3000/companies/${name}`)
-        .then(company => company.json())
-        .then(res => dispatch({ type: GET_COMPANIE, payload: res }))
-        .catch(err => dispatch({ type: GET_COMPANIE, payload:  err.toString() }))
+    return async (dispatch) => {
+        const response = await (await window.fetch(`http://localhost:3000/companies/${name}`)).json();
+        response.name ? dispatch({ type: GET_COMPANIE, payload: response }) : Swal.fire('Something went wrong', `${response.statusCode} - ${response.message}`, 'error');
     };
 };
 
@@ -68,10 +67,21 @@ export const postLogin = (credentials) => {
             dispatch({ type: LOGIN, payload: response });
             Swal.fire(
                 'Good job!',
-                'Logged succesfully.',
+                'Redirecting home...',
                 'success'
             );
         } else Swal.fire('Something went wrong', '.', 'error');
+    };
+};
+
+export const newAppointment = (dataAndCompanyDesired) => {
+    return async (dispatch) => {
+        const response = await (await window.fetch(`http://localhost:3000/appointment/new`, {
+            method: "POST",
+            headers: { 'Content-Type' : 'application/json' },
+            body: JSON.stringify(dataAndCompanyDesired)
+        })).json();
+        response.newAppointment ? Swal.fire('Your appointment is ready.', 'Thank u for the confidence', 'success') : Swal.fire('Something went wrong', `${response.statusCode} - ${response.message}`, 'error');
     };
 };
 

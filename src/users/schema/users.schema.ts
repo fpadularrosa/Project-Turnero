@@ -16,6 +16,9 @@ export class User {
 
   @Prop({ required: true })
   last_name: string;
+
+  @Prop()
+  appointments: Array<object>;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
