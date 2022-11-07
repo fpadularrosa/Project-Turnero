@@ -13,8 +13,8 @@ export class CompanysService {
   constructor(@InjectModel(Company.name) private companyModule: Model<CompanyDocument>){}
 
   async create(createCompanyDto: CreateCompanyDto) {
-    const companyCreated = await this.companyModule.create(createCompanyDto);
-    return companyCreated;
+    let companyCreated = await this.companyModule.create(createCompanyDto);
+    return "This action creates a new companie";
   }
 
   findAll() {
@@ -24,9 +24,10 @@ export class CompanysService {
 
   async findOne(companyName: string) {
     const companys = await this.companyModule.find({});
-    const findedCompany = companys.find(companyObject => companyObject.name.toLowerCase().trim() === companyName.toLowerCase().trim());
-    const { ceo, name, employees, email } = findedCompany;
-    return { ceo, name, employees, email };
+    const findedCompany = companys?.find(companyObject => companyObject.name.toLowerCase().trim() === companyName.toLowerCase().trim());
+    const company = findedCompany.toJSON();
+    delete company.password;
+    return company;
   }
 
   update(id: number, updateCompanyDto: UpdateCompanyDto) {

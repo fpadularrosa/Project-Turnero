@@ -18,7 +18,7 @@ const reducer = (state = initialState, action) => {
         case GET_COMPANIE:
             return {
                 ...state,
-                companies: [action.payload]
+                companies: action.payload
             }
         case LOGIN: 
             return {

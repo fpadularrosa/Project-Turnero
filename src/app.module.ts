@@ -6,18 +6,18 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { CompanysModule } from './companys/companys.module';
 import { AuthModule } from './auth/auth.module';
-import { TurnsModule } from './turns/turns.module';
+import { AppointmentModule } from './appointment/appointment.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }), 
     MongooseModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule.forRoot()],
       useFactory: async (configService: ConfigService) => ({
         uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService],
-    }), UsersModule, CompanysModule, AuthModule, TurnsModule
+    }), UsersModule, CompanysModule, AuthModule, AppointmentModule
   ],
   controllers: [
     AppController

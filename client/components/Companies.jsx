@@ -1,16 +1,12 @@
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { getCompanies } from "../store/actions";
+import Link from "next/link";
+import Companie from '../components/Companie';
+import { companys } from "./utils";
 const Companies = () => {
-    const companys = useSelector(state => state.companies);
-    const dispatch = useDispatch();
-    useEffect(()=>{
-        dispatch(getCompanies());
-    },[]);
+    const { companies } = companys();
     return(
         <div>
             {
-                companys?.map(company => <div key={company._id}><h1>{company.name}</h1> <h2>Founded by: {company.ceo}</h2></div>)
+                companies?.map(company => <Link key={company._id} href={`/companies/${company.name}`}><a key={company._id} href=""><Companie name={company.name} ceo={company.ceo} id={company._id}/></a></Link>)
             }
         </div>
     )

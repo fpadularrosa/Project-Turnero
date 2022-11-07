@@ -1,4 +1,4 @@
-import { HttpException, Injectable } from '@nestjs/common';
+import { HttpException, Injectable, Req, Res, Session } from '@nestjs/common';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { Body } from '@nestjs/common';
@@ -8,6 +8,7 @@ import { User, UserDocument } from '../users/schema/users.schema';
 import { compare, hash } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Company, CompanyDocument } from '../companys/schema/companys.schema';
+import { Request } from 'express';
 
 @Injectable()
 export class AuthService {
@@ -17,15 +18,13 @@ export class AuthService {
 
   async register(@Body() userObject: RegisterAuthDto) {
     const { password, ceo } = userObject;
-    
     const plainToHash = await hash(password, 10);
     userObject = { ...userObject, password: plainToHash };
-
     ceo ? this.companyModel.create(userObject) : this.userModel.create(userObject);
     return 'Registered successfully.';
   };
 
-  async login(@Body() userObject: LoginAuthDto) {
+  async login(@Session() session: Record<string, any>, @Req() request: Request,@Body() userObject: LoginAuthDto) {
     const { email, password } = userObject;
 
     const findedCompany = await this.companyModel.findOne({ email }); 
@@ -62,8 +61,9 @@ export class AuthService {
 
     const token = this.jwtService.sign(payload);
     const user = findedUser.toJSON();
+    session['userId'] = findedUser._id;
+    request.cookies['userId'] = findedUser._id;
     delete user.password;
-
     return {
       user,
       token
