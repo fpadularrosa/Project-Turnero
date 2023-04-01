@@ -3,34 +3,36 @@ import { CompanysService } from './companys.service';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { ApiTags } from '@nestjs/swagger';
+import { Req, UploadedFile, UseInterceptors } from '@nestjs/common/decorators';
+import { FileInterceptor } from '@nestjs/platform-express/multer';
+import { diskStorage } from 'multer';
+import { Express, Request } from 'express';
 
 @ApiTags('companies')
 @Controller('companies')
 export class CompanysController {
   constructor(private readonly companysService: CompanysService) {}
 
+  // @UseInterceptors(FileInterceptor('file', {
+  //   storage: diskStorage({
+  //     destination: './files',
+  //     filename: function(req, file, cb) {
+  //       cb(null, file.originalname + '_' + Date.now() + '.png');
+  //     }
+  //   })
+  // }))
   @Post('create')
-  create(@Body() createCompanyDto: CreateCompanyDto) {
-    return this.companysService.create(createCompanyDto);
+  create(@Req() request: Request, @Body() createCompanyDto: CreateCompanyDto, @UploadedFile() file: Express.Multer.File) {
+    return this.companysService.create(request, createCompanyDto, file);
   }
 
-  @Get()
-  findAll() {
-    return this.companysService.findAll();
+  @Get('/perfocus:focus')
+  findForFocus(@Req() request: Request) {
+    return this.companysService.findForFocus(request);
   }
 
   @Get(':name')
-  findOne(@Param('name') name: string) {
-    return this.companysService.findOne(name);
-  }
-
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateCompanyDto: UpdateCompanyDto) {
-    return this.companysService.update(+id, updateCompanyDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.companysService.remove(+id);
+  findByName(@Req() request: Request) {
+    return this.companysService.findByName(request);
   }
 }

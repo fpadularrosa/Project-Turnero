@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable, Req, Res } from '@nestjs/common';
+import { HttpStatus, Injectable, Req, Res, UploadedFile } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User, UserDocument } from 'src/users/schema/users.schema';
 import { CreateAppointmentDto } from './dto/create-appointment.dto';
@@ -7,71 +7,56 @@ import { Model } from 'mongoose';
 import { Appointment } from './schema/appointment.schema';
 import { Request, Response } from 'express';
 import { Company, CompanyDocument } from 'src/companys/schema/companys.schema';
+
 @Injectable()
 export class AppointmentService {
   constructor(@InjectModel(Appointment.name) private readonly appointmentModel: Model<UserDocument>,
-  @InjectModel(Company.name) private readonly companyModel: Model<CompanyDocument>,
-  @InjectModel(User.name) private readonly userModel: Model<UserDocument> ){}
+    @InjectModel(Company.name) private readonly companyModel: Model<CompanyDocument>,
+    @InjectModel(User.name) private readonly userModel: Model<UserDocument>) { }
 
-  async create(@Res() response: Response, @Req() request: Request, createAppointmentDto: CreateAppointmentDto) {
-    const store = request.sessionStore;
-    const sessionValues = Object.entries(store)[3];
-    const {userId} = JSON.parse((Object.values(sessionValues[1])[0]).toString());
-    const userSession = await this.userModel.findById(userId);
-    const { nameCompany, date, month, year, time, available } = createAppointmentDto;
-    const newAppointment = await this.appointmentModel.create({ date, month, year, time, available, userId });
-    const companyWithAppointment = await this.companyModel.findOne({ name: nameCompany });
-    companyWithAppointment?.appointments?.push(newAppointment);
-    companyWithAppointment.save();
-    userSession?.appointments?.push(newAppointment);
-    userSession?.save();
-    return response
-    .status(HttpStatus.OK).json({
-      message: 'Appointment has been successfully created',
-      newAppointment
-    });
+  async create(@Res() response: Response, @Req() request: Request) {
+    await this.appointmentModel.create({ date: new Date(request.body.date), companyId: request.body.companyId });
+    return response.status(HttpStatus.OK).json({ message: 'Appointment has been successfully created' });
   };
 
-  async findAll(@Req() request: Request) {
-    const { appointments } = await this.companyModel.findById(request.user['userId']);
-    return appointments;
+  async findAll(@Req() request: Request, @Res() response: Response) {
+    const user = await this.userModel.findById(request?.user?.['id']);
+    const company = await this.companyModel.findById(request?.user?.['id']);
+
+    let schedules;
+    if (user) {
+      schedules = await this.appointmentModel.find({ where: { userId: request?.user?.['id'] } });
+      return response.status(HttpStatus.OK).json({ message: 'Your appointments', Appointments: schedules });
+    }
+    if (company) {
+      schedules = await this.appointmentModel.find({ where: { companyId: request?.user?.['id'] } });
+      return response.status(HttpStatus.OK).json({ message: 'Your appointments', Appointments: schedules });
+    }
   };
 
-  findOne(id: number) {
-    return `This action returns a #${id} appointment`;
+  async findOne(id: string) {
+    const finded = await this.appointmentModel.findById(id);
+    return finded;
   };
 
-  async update(@Req() request: Request, @Res() response: Response, id: string, updateAppointmentDto: UpdateAppointmentDto) {
-    const companyId = request.user['userId'];
-    const existsCompany = await this.companyModel.findById(companyId);
-    if(existsCompany){
-      const appointmentUpdated = await this.appointmentModel.findByIdAndUpdate(id, updateAppointmentDto, { new: true });
-      const appointmentsOfCompanyFiltered = existsCompany.appointments.filter(appointment => JSON.stringify(appointment['_id']) !== JSON.stringify(id)).push(appointmentUpdated);
-      await this.companyModel.findByIdAndUpdate(companyId, { appointments: appointmentsOfCompanyFiltered });
-      return response
-      .status(HttpStatus.OK).json({
-        message: 'Appointment has been successfully updated',
-        appointmentUpdated
-      });
-    } else response.status(HttpStatus.UNAUTHORIZED).json({
-        message: 'You dont have authorization'
-    });
+  async update(@Req() request: Request, @Res() response: Response, appointmentid: string, updateAppointmentDto: UpdateAppointmentDto) {
+    const { state, userId } = updateAppointmentDto;
+
+    if(userId){
+      await this.appointmentModel.findByIdAndUpdate(appointmentid, { userId, state: 'Confirmed' }, { new: true });
+      return response.status(HttpStatus.OK).json({ message: 'Your appointment has been created.' });
+    };
+    await this.appointmentModel.findByIdAndUpdate(appointmentid, { state }, { new: true });
+    return response.status(HttpStatus.OK).json({ message: 'Appointment has been successfully suspended.' });
   };
 
   async remove(@Res() response: Response, @Req() request: Request, id: string) {
-    const companyId = request.user['userId'];
-    const companySession = await this.companyModel.findById(companyId);
-    if(companySession){
-      const appointmentDeleted = await this.appointmentModel.findByIdAndDelete(id);
-      const appointmentsFiltered = companySession.appointments.filter(appointment => JSON.stringify(appointment['_id']) !== JSON.stringify(id));
-      await this.companyModel.findByIdAndUpdate(companyId, { appointments: appointmentsFiltered })
-      return response
-      .status(HttpStatus.OK).json({
-        message: 'Appointment has been successfully deleted',
-        appointmentDeleted
-      });
-    } else response.status(HttpStatus.UNAUTHORIZED).json({
-        message: 'You dont have authorization'
-    });
-  };
-}
+    try {
+      await this.appointmentModel.findByIdAndDelete(id);
+
+      return response.status(HttpStatus.OK).json({ message: 'Appointment has been successfully deleted' });
+    } catch (error) {
+      return response.status(HttpStatus.UNAUTHORIZED).json({ message: error.message });
+    }
+  }
+};

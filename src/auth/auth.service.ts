@@ -1,72 +1,57 @@
-import { HttpException, Injectable, Req, Res, Session } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Res, Req, Session } from '@nestjs/common';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { RegisterAuthDto } from './dto/register-auth.dto';
 import { Body } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../users/schema/users.schema';
-import { compare, hash } from 'bcrypt';
+import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { Company, CompanyDocument } from '../companys/schema/companys.schema';
-import { Request } from 'express';
+import { Response, Request, NextFunction } from 'express';
+require('dotenv').config();
+const { SECRET_SESSION } = process.env;
 
 @Injectable()
 export class AuthService {
   constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-  @InjectModel(Company.name) private readonly companyModel: Model<CompanyDocument>,
-  private readonly jwtService: JwtService){}
+    @InjectModel(Company.name) private readonly companyModel: Model<CompanyDocument>,
+    private readonly jwtService: JwtService) { }
 
-  async register(@Body() userObject: RegisterAuthDto) {
-    const { password, ceo } = userObject;
-    const plainToHash = await hash(password, 10);
-    userObject = { ...userObject, password: plainToHash };
-    ceo ? this.companyModel.create(userObject) : this.userModel.create(userObject);
-    return 'Registered successfully.';
+  async register(@Body() userObject: RegisterAuthDto, @Res() response: Response) {
+    let { ceo } = userObject;
+
+    ceo ? await this.companyModel.create(userObject) : await this.userModel.create(userObject);
+
+    return response.status(HttpStatus.OK).json({ message: 'Successfully registered' });
   };
 
-  async login(@Session() session: Record<string, any>, @Req() request: Request,@Body() userObject: LoginAuthDto) {
+  async login(@Res() response: Response, @Body() userObject: LoginAuthDto) {
     const { email, password } = userObject;
-
-    const findedCompany = await this.companyModel.findOne({ email }); 
+    const findedCompany = await this.companyModel.findOne({ email });
     const findedUser = await this.userModel.findOne({ email });
 
-    if(!findedUser && !findedCompany) throw new HttpException('EMAIL_NOT_FOUND', 404);
+    if (!findedUser && !findedCompany) throw new HttpException('EMAIL_NOT_FOUND', 404);
+
     if(findedCompany){
+      const payload = { role: 'ceo', id: findedCompany['_id'] };
+
       const checkPassword = await compare(password, findedCompany.password);
-
       if(!checkPassword) throw new HttpException('CREDENTIALS_INCORRECT', 403);
-  
-      const payload = { 
-        id: findedCompany._id,
-        name: findedCompany.name
-      };
-  
-      const token = this.jwtService.sign(payload);
-      const company = findedCompany.toJSON();
-      delete company.password;
-      
-      return {
-        company,
-        token
-      };
-    };
-    const checkPassword = await compare(password, findedUser.password);
 
-    if(!checkPassword) throw new HttpException('CREDENTIALS_INCORRECT', 403);
-
-    const payload = { 
-      id: findedUser._id,
-      name: findedUser.name
+      return response.json({
+        access_token: await this.jwtService.sign(payload, { secret: SECRET_SESSION }),
+      });
     };
+    if(findedUser){
+      const payload = { id: findedUser['_id'], role: findedUser['role'] };
 
-    const token = this.jwtService.sign(payload);
-    const user = findedUser.toJSON();
-    session['userId'] = findedUser._id;
-    request.cookies['userId'] = findedUser._id;
-    delete user.password;
-    return {
-      user,
-      token
+      const checkPassword = await compare(password, findedUser.password);
+      if(!checkPassword) throw new HttpException('CREDENTIALS_INCORRECT', 403);
+
+      return response.json({
+        access_token: await this.jwtService.sign(payload, { secret: SECRET_SESSION }),
+      });
     };
-  };
 };
+}

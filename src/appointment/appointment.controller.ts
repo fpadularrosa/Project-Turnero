@@ -1,41 +1,42 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Req, UseGuards, Res } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Req, Res } from '@nestjs/common';
+import { UseGuards } from '@nestjs/common/decorators';
+import { AuthGuard } from '@nestjs/passport';
 import { ApiTags } from '@nestjs/swagger';
 import { Request, Response } from 'express';
-import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { AppointmentService } from './appointment.service';
-import { CreateAppointmentDto } from './dto/create-appointment.dto';
 import { UpdateAppointmentDto } from './dto/update-appointment.dto';
 
 @ApiTags('appointments')
 @Controller('appointment')
 export class AppointmentController {
-  constructor(private readonly appointmentService: AppointmentService) {}
+  constructor(private readonly appointmentService: AppointmentService) {};
 
+  @UseGuards(AuthGuard('jwt'))
   @Post('new')
-  create(@Res() response: Response, @Req() request: Request, @Body() createAppointmentDto: CreateAppointmentDto) {
-    return this.appointmentService.create(response, request, createAppointmentDto);
-  }
+  create(@Res() response: Response, @Req() request: Request) {
+    return this.appointmentService.create(response, request);
+  };
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Get()
-  findAll(@Req() request: Request) {
-    return this.appointmentService.findAll(request);
-  }
+  findAll(@Req() request: Request, @Res() response: Response) {
+    return this.appointmentService.findAll(request, response);
+  };
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.appointmentService.findOne(+id);
-  }
+    return this.appointmentService.findOne(id);
+  };
 
-  @UseGuards(JwtAuthGuard)
-  @Patch(':id')
-  update(@Res() response: Response, @Req() request: Request, @Param('id') id: string, @Body() updateAppointmentDto: UpdateAppointmentDto) {
-    return this.appointmentService.update(request, response, id, updateAppointmentDto);
-  }
+  @UseGuards(AuthGuard('jwt'))
+  @Patch(':appointmentid')
+  update(@Res() response: Response, @Req() request: Request, @Param('appointmentid') appointmentid: string, @Body() updateAppointmentDto: UpdateAppointmentDto) {
+    return this.appointmentService.update(request, response, appointmentid, updateAppointmentDto);
+  };
 
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AuthGuard('jwt'))
   @Delete(':id')
   remove(@Res() response: Response, @Req() request: Request, @Param('id') id: string) {
     return this.appointmentService.remove(response, request, id);
-  }
-}
+  };
+};

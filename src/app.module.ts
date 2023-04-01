@@ -17,7 +17,7 @@ import { AppointmentModule } from './appointment/appointment.module';
         uri: configService.get<string>('MONGODB_URI'),
       }),
       inject: [ConfigService],
-    }), UsersModule, CompanysModule, AuthModule, AppointmentModule
+    }), UsersModule, CompanysModule, AuthModule, AppointmentModule,
   ],
   controllers: [
     AppController
@@ -27,4 +27,4 @@ import { AppointmentModule } from './appointment/appointment.module';
   ],
 })
 
-export class AppModule {}
+export class AppModule {};

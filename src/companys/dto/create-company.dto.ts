@@ -20,7 +20,4 @@ export class CreateCompanyDto {
     @IsNumber()
     @IsNotEmpty()
     employees: number;
-
-    @IsOptional()
-    appointments: Array<object>;
 }

@@ -1,25 +1,17 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsNotEmpty, IsOptional } from "class-validator";
+import { State } from "../enums/schema.enum";
 
 export class CreateAppointmentDto {
     @IsOptional()
     userId: string;
     
     @IsNotEmpty()
-    nameCompany: string;
+    companyId: string;
     
     @IsNotEmpty()
-    date: string;
-    
-    @IsNotEmpty()
-    month: string;
-  
-    @IsNotEmpty()
-    year: string;
-  
-    @IsNotEmpty()
-    time: string;
-  
-    @ApiProperty({ default: true })
-    available: boolean;
+    date: Date;
+
+    @ApiProperty({ enum: ['Suspended', 'Confirmed', 'Free'], default: 'Free' })
+    state: State;
 };

@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { State } from '../enums/schema.enum';
 
 export type AppointmentDocument = Appointment & Document;
 
@@ -7,21 +8,15 @@ export type AppointmentDocument = Appointment & Document;
 export class Appointment {
   @Prop({ required: true })
   date: string;
-  
-  @Prop({ required: true })
-  month: string;
 
   @Prop({ required: true })
-  year: string;
+  companyId: string;
 
-  @Prop({ required: true })
-  time: string;
-
-  @Prop({ default: true })
-  available: boolean;
-
-  @Prop()
+  @Prop({ required: false })
   userId: string;
+
+  @Prop({ enum: ['Suspended', 'Confirmed', 'Free'], default: 'Free' })
+  state: State;
 };
 
 export const AppointmentSchema = SchemaFactory.createForClass(Appointment);
