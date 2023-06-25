@@ -6,7 +6,7 @@ const SelectCompany = () => {
     return(
         <>
         <NavBar/>
-        <SearchCompanies/>
+            <SearchCompanies/>
         <Companies/>
         </>
     )
