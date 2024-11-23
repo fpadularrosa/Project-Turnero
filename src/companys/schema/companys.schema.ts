@@ -1,50 +1,43 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert } from 'typeorm';
 import { hash } from 'bcrypt';
-import { Document } from 'mongoose';
-import { Role } from 'src/auth/enums/role.enum';
 
+@Entity()
+export class CompanySchema {
+  @PrimaryGeneratedColumn()
+  id: number;
 
-export type CompanyDocument = Company & Document;
-
-@Schema()
-export class Company {
-  @Prop({ required: true, unique: true })
+  @Column({ unique: true })
   name: string;
 
-  @Prop({ required: true })
+  @Column()
   contact: string;
 
-  @Prop({ required: true, unique: true })
+  @Column({ unique: true })
   ceo: string;
 
-  @Prop({ required: true })
+  @Column()
   password: string;
 
-  @Prop({ required: true, unique: true })
+  @Column({ unique: true })
   email: string;
 
-  @Prop({ required: true })
+  @Column()
   employees: number;
 
-  @Prop({ minlength: 60, maxlength: 1000, required: false })
+  @Column({ nullable: true, length: 1000 })
   aboutCompany: string;
 
-  @Prop({ enum: ['ceo', 'user'], default: Role.Ceo })
-  role: Role;
-
-  @Prop({ required: true })
+  @Column()
   timeAttention: string;
 
-  @Prop({ required: true })
+  @Column()
   focus: string;
 
-  // @Prop({ required: true })
-  // logo: string;
-};
+  @Column()
+  logo: string;
 
-export const CompanySchema = SchemaFactory.createForClass(Company);
-
-CompanySchema.pre('save', async function(next) {
-  this.password = await hash(this.password, 10);
-  next();
-});
+  @BeforeInsert()
+  async hashPassword() {
+    this.password = await hash(this.password, 10);
+  }
+}

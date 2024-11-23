@@ -1,22 +1,19 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
-import { State } from '../enums/schema.enum';
+import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
 
-export type AppointmentDocument = Appointment & Document;
+@Entity('appointments')
+export class AppointmentSchema {
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-@Schema()
-export class Appointment {
-  @Prop({ required: true })
-  date: string;
+  @Column({ type: 'timestamp' })
+  date: Date;
 
-  @Prop({ required: true })
+  @Column()
   companyId: string;
 
-  @Prop({ required: false })
-  userId: string;
+  @Column({ nullable: true })
+  userId?: string;
 
-  @Prop({ enum: ['Suspended', 'Confirmed', 'Free'], default: 'Free' })
-  state: State;
-};
-
-export const AppointmentSchema = SchemaFactory.createForClass(Appointment);
+  @Column({ default: 'Free' })
+  state: 'Suspended' | 'Confirmed' | 'Free';
+}

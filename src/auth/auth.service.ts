@@ -1,57 +1,69 @@
-import { HttpException, HttpStatus, Injectable, Res, Req, Session } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Res, Req, Body } from '@nestjs/common';
 import { LoginAuthDto } from './dto/login-auth.dto';
 import { RegisterAuthDto } from './dto/register-auth.dto';
-import { Body } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
-import { User, UserDocument } from '../users/schema/users.schema';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from '../users/entities/user.entity';
 import { compare } from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import { Company, CompanyDocument } from '../companys/schema/companys.schema';
-import { Response, Request, NextFunction } from 'express';
+import { Company } from '../companys/entities/company.entity';
+import { Response, Request } from 'express';
 require('dotenv').config();
 const { SECRET_SESSION } = process.env;
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User.name) private readonly userModel: Model<UserDocument>,
-    @InjectModel(Company.name) private readonly companyModel: Model<CompanyDocument>,
-    private readonly jwtService: JwtService) { }
+  constructor(
+    @InjectRepository(User) private readonly users: Repository<User>,
+    @InjectRepository(Company) private readonly companys: Repository<Company>,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async register(@Body() userObject: RegisterAuthDto, @Res() response: Response) {
-    let { ceo } = userObject;
+    try {
+      let { ceo } = userObject;
+  
+      if (ceo) {
+        await this.companys.save(userObject);
+      } else {
+        await this.users.save(userObject);
+      }
+  
+      return response.status(HttpStatus.OK).json({ message: 'Successfully registered' });
+    } catch (error) {
+      throw new HttpException('Error registering', HttpStatus.BAD_REQUEST);
+    }
+  }
 
-    ceo ? await this.companyModel.create(userObject) : await this.userModel.create(userObject);
-
-    return response.status(HttpStatus.OK).json({ message: 'Successfully registered' });
-  };
-
-  async login(@Res() response: Response, @Body() userObject: LoginAuthDto) {
+  async login(@Res() response: Response, @Req() request: Request, @Body() userObject: LoginAuthDto) {
     const { email, password } = userObject;
-    const findedCompany = await this.companyModel.findOne({ email });
-    const findedUser = await this.userModel.findOne({ email });
+    const findedCompany = await this.companys.findOne({ where: { email } });
+    const findedUser = await this.users.findOne({ where: { email } });
 
     if (!findedUser && !findedCompany) throw new HttpException('EMAIL_NOT_FOUND', 404);
 
-    if(findedCompany){
-      const payload = { role: 'ceo', id: findedCompany['_id'] };
+    if (findedCompany) {
+      request.user = "company";
+      const payload = { id: findedCompany.id };
 
       const checkPassword = await compare(password, findedCompany.password);
-      if(!checkPassword) throw new HttpException('CREDENTIALS_INCORRECT', 403);
+      if (!checkPassword) throw new HttpException('CREDENTIALS_INCORRECT', 403);
 
       return response.json({
-        access_token: await this.jwtService.sign(payload, { secret: SECRET_SESSION }),
+        access_token: this.jwtService.sign(payload, { secret: SECRET_SESSION }),
       });
-    };
-    if(findedUser){
-      const payload = { id: findedUser['_id'], role: findedUser['role'] };
+    }
+
+    if (findedUser) {
+      request.user = "user";
+      const payload = { id: findedUser.id };
 
       const checkPassword = await compare(password, findedUser.password);
-      if(!checkPassword) throw new HttpException('CREDENTIALS_INCORRECT', 403);
+      if (!checkPassword) throw new HttpException('CREDENTIALS_INCORRECT', 403);
 
       return response.json({
         access_token: await this.jwtService.sign(payload, { secret: SECRET_SESSION }),
       });
-    };
-};
+    }
+  }
 }

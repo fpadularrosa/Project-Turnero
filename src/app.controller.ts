@@ -1,6 +1,11 @@
-import { Controller } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { Controller, Get, UseGuards } from '@nestjs/common';
+import { AuthGuard } from './auth/auth.guard';
 
 @Controller()
-@ApiTags('app')
-export class AppController { constructor() {} };
+export class AppController {
+    @Get('/')
+    @UseGuards(AuthGuard)
+    getRoot() {
+        return 'Bienvenido a la ruta raíz';
+    }
+}

@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger';
 import { IsOptional, IsString } from 'class-validator';
-import { State } from '../enums/schema.enum';
+//import { State } from '../enums/schema.enum';
 import { CreateAppointmentDto } from './create-appointment.dto';
 
 export class UpdateAppointmentDto extends PartialType(CreateAppointmentDto) {
@@ -10,7 +10,7 @@ export class UpdateAppointmentDto extends PartialType(CreateAppointmentDto) {
 
     @IsOptional()
     @IsString()
-    state: State;
+    //state: State;
 
     @IsOptional()
     companyId: string;

@@ -1,25 +1,22 @@
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Entity, Column, PrimaryGeneratedColumn, BeforeInsert } from 'typeorm';
 import { hash } from 'bcrypt';
-import { Document } from 'mongoose';
-import { Role } from 'src/auth/enums/role.enum';
 
-export type UserDocument = User & Document;
-
-@Schema()
+@Entity()
 export class User {
-  @Prop({ required: true })
-  name: string;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @Prop({ required: true })
-  password: string;
+    @Column({ nullable: false })
+    name: string;
 
-  @Prop({ required: true, unique: true })
-  email: string;
+    @Column({ nullable: false })
+    password: string;
 
-  @Prop({ enum: ['ceo', 'user'] , default: Role.User })
-  role: Role;
+    @Column({ nullable: false, unique: true })
+    email: string;
+
+    @BeforeInsert()
+    async hashPassword() {
+        this.password = await hash(this.password, 10);
+    }
 }
-
-export const UserSchema = SchemaFactory.createForClass(User);
-
-UserSchema.pre('save', async function(next) { this.password = await hash(this.password, 10); next(); });

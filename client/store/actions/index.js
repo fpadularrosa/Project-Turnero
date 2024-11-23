@@ -33,27 +33,36 @@ export const postTurn = (turn) => {
     };
 };
 
-export const postRegisterUser = (user) => {
-    const response = window.fetch('http://localhost:3000/auth/register', 
-    {
-        method: "POST",
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(user)
-    });
-    if(response.ok){
+export const postRegisterUser = async (user) => {
+    try {
+        const response = await fetch('http://localhost:3001/auth/register', 
+        {
+            method: "POST",
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(user)
+        });
+
+        if (response.ok) {
+            Swal.fire(
+                'Good job!',
+                'Registered successfully.',
+                'success'
+            );
+        } else {
+            Swal.fire(
+                'Something went wrong',
+                '.',
+                'error'
+            );
+        }
+    } catch (error) {
         Swal.fire(
-            'Good job!',
-            'Registered successfully.',
-            'success'
-        );
-    } else {
-        Swal.fire(
-            'Something went wrong',
-            '.',
+            'Error',
+            'An error occurred while registering.',
             'error'
         );
-    };
-};
+    }
+}
 
 export const postLogin = (credentials) => {
     return async (dispatch) => {
